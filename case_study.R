@@ -35,8 +35,9 @@ model=GI_fit(y,x)
 model$beta
 confint(model)
 #summary(fit)
-plot(res(fit=model,"pearson"))
+plot(res(fit=model))
 sum(res(fit=model)^2)
-mod=glm()
+
+dev(model)
 
 

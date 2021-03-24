@@ -1,5 +1,6 @@
-#IRWLS
-
+#libraries
+library(SuppDists)
+library(MASS)
 #diagonal matrix
 diag_m=function(k,m,n){
 	t=m*n
@@ -41,7 +42,7 @@ update_z=function(y,mu){
 }
 #update betas
 update_b=function(X,w,z){
-	t=solve(t(X)%*%w%*%X)%*%t(X)%*%w%*%z
+	t=ginv(t(X)%*%w%*%X)%*%t(X)%*%w%*%z
 	return(t)
 }
 #update mu
@@ -59,7 +60,7 @@ check_conv=function(b_prev,b,tol=0.0001){
 	}
 }
 #Iterative reweighted Least squares
-IWRLS=function(y,X,max_iter,lambda=1){
+IRWLS=function(y,X,max_iter,lambda=1){
 	i=1
 	j=0
 	#initial values
@@ -100,7 +101,7 @@ confint=function(fit,alpha=0.05){
     l=fit$lambda
     mu=fit$fitted_mu
     b=fit$beta
-    v=sqrt(diag(solve(t(X)%*%update_w(l,mu)%*%X)))
+    v=sqrt(diag(ginv(t(X)%*%update_w(l,mu)%*%X)))
     t=qt(1-alpha/2,df=fit$n-fit$nparams)
     L=b-t*v
     R=b+t*v
@@ -112,21 +113,24 @@ dev=function(fits){
   llk_0=llk(fits$y,fits$y,fits$lambda)
   return(2*(llk_0-fits$llk))
 }
-utils::globalVariables("n", add = TRUE)
+
 #FIT
-GI_fit=function(y,x,max_iter=100){
+IG_fit=function(y,x,max_iter=100,intercept=TRUE){
   if(length(y)==nrow(x)){
     n<-nrow(x)
     covariates=colnames(x)
-    fit=list()
-    X=as.matrix(cbind(rep(1,n),x))
+    if(intercept==FALSE){x=as.matrix(x)
+    }else{
+      intercept=rep(1,n)
+      X=as.matrix(cbind(intercept,x))
+    }
     k=ncol(X)
     #print(X)
     fit[["n"]]=n
     fit[["X"]]<-X
     fit[["y"]]<-y
     fit[["covariates"]]<-c("Intercept",covariates)
-    b=round(IWRLS(y,X,max_iter),3)
+    b=round(IRWLS(y,X,max_iter),3)
     fit[["beta"]]=b
     mu=update_mu(b,X)
     fit[["fitted_mu"]]=mu
@@ -156,7 +160,7 @@ GI_fit=function(y,x,max_iter=100){
 
 
 #Hat matrix
-hat=function(fit){sqrt(fit$w)%*%fit$X%*%solve(t(fit$X)%*%fit$w%*%fit$X)%*%t(fit$X)%*%sqrt(fit$w)}
+hat=function(fit){sqrt(fit$w)%*%fit$X%*%ginv(t(fit$X)%*%fit$w%*%fit$X)%*%t(fit$X)%*%sqrt(fit$w)}
 
 #Residual
 
