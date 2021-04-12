@@ -1,3 +1,7 @@
+
+#' Title= Inverse Gaussian GLM
+#' author: Suman Saha
+
 #libraries
 library(SuppDists)
 library(MASS)
@@ -119,6 +123,7 @@ IG_fit=function(y,x,max_iter=100,intercept=TRUE){
   if(length(y)==nrow(x)){
     n<-nrow(x)
     covariates=colnames(x)
+    fit=list()
     if(intercept==FALSE){x=as.matrix(x)
     }else{
       intercept=rep(1,n)
@@ -160,12 +165,12 @@ IG_fit=function(y,x,max_iter=100,intercept=TRUE){
 
 
 #Hat matrix
-hat=function(fit){sqrt(fit$w)%*%fit$X%*%ginv(t(fit$X)%*%fit$w%*%fit$X)%*%t(fit$X)%*%sqrt(fit$w)}
+Hat=function(fit){sqrt(fit$w)%*%fit$X%*%ginv(t(fit$X)%*%fit$w%*%fit$X)%*%t(fit$X)%*%sqrt(fit$w)}
 
 #Residual
 
 res=function(fit,type="deviance"){
-    	H=diag(hat(fit))
+    	H=diag(Hat(fit))
 	if(type=="pearson"){
 		r=(fit$y-fit$fitted_mu)/as.vector(sqrt(var(fit$fitted_mu)%*%(1-H)))
 
